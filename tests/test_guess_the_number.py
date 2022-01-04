@@ -1,24 +1,20 @@
-from brownie import accounts, Contract, exceptions, GuessTheNumberChallenge
+from brownie import accounts, GuessTheNumberChallenge
 from web3 import Web3
-import pytest
 
-# need 1 ether to interact with contract and call guess function
-AMOUNT_OF_ETHER_REQUIRED = Web3.toWei("1", "ether")
+eth_amount = Web3.toWei("1", "ether")
+challenge_address = "0x0E2065e6dA9Cf78117fF580441546c09ca28a9F0"
 
 
 def test_guess_the_number():
-    # set up account and contract
+    # load account
     account = accounts.load("Ropsten_test_net_account")
-    guess_the_number_contract = Contract.from_abi(
-        "GuessTheNumberChallenge",
-        "0x0E2065e6dA9Cf78117fF580441546c09ca28a9F0",
-        GuessTheNumberChallenge.abi,
-    )
-    # run exploit
-    exploit = guess_the_number_contract.guess(
-        42, {"from": account, "value": AMOUNT_OF_ETHER_REQUIRED}
-    )
-    exploit.wait(1)
-    print(exploit.info())
+
+    # get challenge contract
+    challenge = GuessTheNumberChallenge.at(challenge_address)
+
+    # call guess with 42 as an argument
+    tx = challenge.guess(42, {"from": account, "value": eth_amount})
+    tx.wait(1)
+
     # assert isComplete is true
-    assert guess_the_number_contract.isComplete()
+    assert challenge.isComplete()

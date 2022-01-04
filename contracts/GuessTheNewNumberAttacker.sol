@@ -7,7 +7,7 @@ interface IGuessTheNewNumberChallenge {
     function guess(uint8 n) external payable;
 }
 
-contract GuessTheNewNumberChallengeHacker {
+contract GuessTheNewNumberChallengeAttacker {
     IGuessTheNewNumberChallenge public challenge;
     address payable public owner;
 

