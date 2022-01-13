@@ -1,4 +1,4 @@
-from brownie import accounts, Contract, GuessTheRandomNumberChallenge
+from brownie import accounts, config, Contract, GuessTheRandomNumberChallenge
 from web3 import Web3
 
 eth_amount = Web3.toWei("1", "ether")
@@ -13,14 +13,11 @@ def test_guess_random_number():
     challenge = GuessTheRandomNumberChallenge.at(challenge_address)
 
     # set up web3
-    w3 = Web3(
-        Web3.HTTPProvider(
-            "https://eth-ropsten.alchemyapi.io/v2/JNoTP19e7VPqcG8MrmeoXUlykdGCNgrF"
-        )
-    )
+    rpc_url = config["wallets"]["endpoint"]
+    w3 = Web3(Web3.HTTPProvider(rpc_url))
 
     # get storage at slot 0
-    random_number = w3.eth.get_storage_at("challenge_address", 0)
+    random_number = w3.eth.get_storage_at(challenge_address, 0)
     answer = Web3.toInt(random_number)
 
     # call guess function with answer as argument
